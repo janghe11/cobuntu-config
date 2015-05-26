@@ -67,11 +67,11 @@ do_auto_config() {
 
     locale-gen ko_KR.UTF-8
     echo LANG="ko_KR.UTF-8" > /etc/locale.conf
+}
 
 #
 # Functions for Menu
 #
-
 do_update() {
     apt-get update
     apt-get upgrade -y
