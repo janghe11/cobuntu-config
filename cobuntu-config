@@ -1,0 +1,127 @@
+#!/bin/sh
+# Part of raspi-config http://github.com/asb/raspi-config
+#
+# See LICENSE file for copyright and license details
+
+INTERACTIVE=True
+#ASK_TO_REBOOT=0
+#BLACKLIST=/etc/modprobe.d/raspi-blacklist.conf
+CONFIG=/boot/config.txt
+
+#
+# Functions for WT
+#
+calc_wt_size() {
+    # NOTE: it's tempting to redirect stderr to /dev/null, so supress error 
+    # output from tput. However in this case, tput detects neither stdout or 
+    # stderr is a tty and so only gives default 80, 24 values
+    WT_HEIGHT=12
+    WT_WIDTH=$(tput cols)
+
+    if [ -z "$WT_WIDTH" ] || [ "$WT_WIDTH" -lt 80 ]; then
+        WT_WIDTH=80
+    elif [ "$WT_WIDTH" -gt 178 ]; then
+        WT_WIDTH=140
+    else
+        WT_WIDTH=120
+    fi
+
+    WT_MENU_HEIGHT=$(($WT_HEIGHT-7))
+}
+
+do_finish() {
+    whiptail --yesno --yes-button No --no-button Yes "변경사항을 반영하려면, 시스템을 재시작해야 합니다. 재부팅하시겠습니까?" 10 60 2
+    if [ $? -eq 1 ]; then # yes
+      sync
+      reboot
+    fi
+    exit 0
+}
+
+#
+# Functions for Menu
+#
+
+do_update() {
+    apt-get update & upgrade
+}
+
+#do_korea_local_settings() {
+#}
+
+do_korean_im_settings() {
+    DO=$(whiptail --title "우분투 설정 도구 (cobuntu-config)" --radiolist "어떤 한국어 입력기를 설치하시겠습니까?" $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT --cancel-button Back --ok-button Select \
+    "1 ibus 설치" "한국어 입력기인 Ibus 및 Ibus-hangul을 설치합니다.(권장)" on \
+    "2 nabi 설치" "한국어 입력기인 nabi을 설치합니다.(선택)" off\
+    "3 uim 설치" "한국어 입력기인 uim을 설치합니다.(선택)" off\
+    3>&1 1>&2 2>&3)
+    RET=$?
+    if [ $RET -eq 0 ]; then
+        case "$DO" in
+            1\ *)
+                locale-gen ko_KR.UTF-8
+                apt-get install ibus Ibus-hangul
+                ibus-settings
+                ;;
+            2\ *)
+                locale-gen ko_KR.UTF-8
+                apt-get install nabi
+                ;;
+            3\ *)
+                locale-gen ko_KR.UTF-8
+                apt-get install uim uim-beoyru
+                ;;
+            *) whiptail --msgbox "Programmer error: unrecognized option" 20 60 1 ;;
+        esac || whiptail --msgbox "There was an error running option $FUN" 20 60 1
+        do_korean_im_settings
+    fi
+}
+
+do_useful_apps() {
+    DO=$(whiptail --title "우분투 설정 도구 (cobuntu-config)" --menu "도구 모음" $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT --cancel-button Finish --ok-button Select \
+    "1 프로그램 모음" "우분투 사용에 유용한 여러가기 프로그램들을 한꺼번에 설치합니다." \
+    3>&1 1>&2 2>&3)
+    RET=$?
+    if [ $RET -eq 0 ]; then
+        case "$DO" in
+            1\ *)
+                whiptail --yesno "해당 과정은 gimp, tlp, ... 를 컴퓨터에 설치합니다. 진행하시겠습니까?" $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT\
+                3>&1 1>&2 2>&3
+                RET=$?
+                if [$RET -eq 0]; then
+                    echo "working"
+                    apt-get update & upgrade
+                    apt-get install gimp tlp
+                fi
+                ;;
+            *) whiptail --msgbox "Programmer error: unrecognized option" 10 60 1 ;;
+        esac || whiptail --msgbox "There was an error running option $FUN" 10 60 1
+    fi
+}
+
+#
+# Interactive use loop
+#
+calc_wt_size
+while true; do
+    FUN=$(whiptail --title "우분투 설정 도구 (cobuntu-config)" --menu "설정 메뉴" $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT --cancel-button Finish --ok-button Select \
+    "1 우분투 최신 상태로 업데이트" "우분투를 최신 버전으로 업데이트 & 업그레이드 합니다.." \
+    "2 지역 세팅" "한국 지역 관련 설정을 합니다." \
+    "3 한국어 입력기 설치" "한국어 입력 관련 설정을 합니다." \
+    "4 유용한 도구들" "우분투 사용을 편하게 해주는 유용한 도구들을 설치합니다." \
+    3>&1 1>&2 2>&3)
+    RET=$?
+    if [ $RET -eq 1 ]; then
+        do_finish
+    elif [ $RET -eq 0 ]; then
+    case "$FUN" in
+        1\ *) do_update ;;
+        2\ *) do_korea_local_settings ;;
+        3\ *) do_korean_im_settings ;;
+        4\ *) do_useful_apps ;;
+        *) whiptail --msgbox "Programmer error: unrecognized option" 10 60 1 ;;
+    esac || whiptail --msgbox "There was an error running option $FUN" 10 60 1
+    else
+        exit 1
+    fi
+done
