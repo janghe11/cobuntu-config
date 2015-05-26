@@ -43,7 +43,8 @@ do_finish() {
 #
 
 do_update() {
-    apt-get update & upgrade
+    apt-get update
+    apt-get upgrade
 }
 
 #do_korea_local_settings() {
