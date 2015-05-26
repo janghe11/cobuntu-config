@@ -30,7 +30,7 @@ calc_wt_size() {
 }
 
 intro() {
-    DO=$(whiptail --title "우분투 설정 도구 (cobuntu-config)" --menu "설치 방식을 선택하여 주십시오." $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT --cancel-button Back --ok-button Select \
+    DO=$(whiptail --title "우분투 설정 도구 (cobuntu-config)" --menu "설치 방식을 선택하여 주십시오." $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT --cancel-button Finish --ok-button Select \
     "1 자동설정" "필요한 설정 및 프로그램을 자동으로 설치합니다. (권장)" \
     "2 선택설정" "사용자들이 필요한 설정 및 프로그램을 직접 선택합니다. (선택)" \
     3>&1 1>&2 2>&3)
@@ -46,6 +46,16 @@ intro() {
                 ;;
             *) whiptail --msgbox "Programmer error: unrecognized option" 10 60 1 ;;
         esac || whiptail --msgbox "There was an error running option $FUN" 10 60 1
+    elif [ $RET -eq 1 ]; then
+        exit 0
+    fi
+}
+
+enter_passwd() {
+    if [ $(id -u) -ne 0 ]; then
+        #sudo /home/go/Dropbox/Project/ubuntu/cobuntu-config/cobuntu-config
+        sudo /usr/bin/cobuntu-config
+        exit 1
     fi
 }
 
@@ -74,7 +84,7 @@ do_auto_config() {
 #
 do_update() {
     apt-get update
-    apt-get upgrade -y
+    apt-get -y upgrade
 }
 
 #do_korea_local_settings() {
@@ -170,11 +180,6 @@ done
 #fi
 
 # Everything else needs to be run as root
-if [ $(id -u) -ne 0 ]; then
-  printf "Script must be run as root. Try 'sudo cobuntu-config'\n"
-  exit 1
-fi
-
 if [ -n "${OPT_MEMORY_SPLIT:-}" ]; then
   set -e # Fail when a command errors
   set_memory_split "${OPT_MEMORY_SPLIT}"
@@ -185,6 +190,7 @@ fi
 # Interactive use loop
 #
 calc_wt_size
+enter_passwd
 intro
 while true; do
     FUN=$(whiptail --title "우분투 설정 도구 (cobuntu-config)" --menu "설정 메뉴" $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT --cancel-button Finish --ok-button Select \
