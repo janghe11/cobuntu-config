@@ -8,6 +8,7 @@ ASK_TO_REBOOT=0
 #BLACKLIST=/etc/modprobe.d/raspi-blacklist.conf
 CONFIG=/boot/config.txt
 EXEC_PATH='/usr/bin/cobuntu-config'
+USEFUL_APPS='gimp vim git' # 유용한 앱들은 여기에 추가
 
 #
 # Functions for WT
@@ -39,8 +40,8 @@ intro() {
     if [ $RET -eq 0 ]; then
         case "$DO" in
             1\ *)
-                do_auto_config
-                do_finish
+                auto_config
+                finish
                 ;;
             2\ *)
                 return
@@ -60,7 +61,7 @@ enter_passwd() {
     fi
 }
 
-do_finish() {
+finish() {
     whiptail --yesno --yes-button No --no-button Yes "변경사항을 반영하려면, 시스템을 재시작해야 합니다. 재부팅하시겠습니까?" 10 60 2
     if [ $? -eq 1 ]; then # yes
       sync
@@ -72,26 +73,26 @@ do_finish() {
 #
 # Auto Config
 #
-do_auto_config() {
-    apt-get update
-    apt-get -y upgrade
-
-    locale-gen ko_KR.UTF-8
-    cat "locale" > /etc/default/locale
+auto_config() {
+    do_update
+    do_local_settings
+    do_locale_settings
+    do_ibus_install
+    do_useful_apps_install
 }
 
 #
-# Functions for Menu
+# main 함수
 #
-do_update() {
-    apt-get update
-    apt-get -y upgrade
+main_update() {
+    do_update
 }
 
-#do_korea_local_settings() {
-#}
+main_korea_local_settings() {
+    do_local_settings
+}
 
-do_korean_im_settings() {
+main_korean_im_settings() {
     DO=$(whiptail --title "우분투 설정 도구 (cobuntu-config)" --menu "어떤 한국어 입력기를 설치하시겠습니까?" $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT --cancel-button Back --ok-button Select \
     "1 ibus 설치" "한국어 입력기인 Ibus 및 Ibus-hangul을 설치합니다.(권장)" \
     "2 nabi 설치" "한국어 입력기인 nabi을 설치합니다.(선택)" \
@@ -99,34 +100,61 @@ do_korean_im_settings() {
     3>&1 1>&2 2>&3)
     RET=$?
     if [ $RET -eq 0 ]; then
+        do_locale_settings
         case "$DO" in
             1\ *)
-                locale-gen ko_KR.UTF-8
-                apt-get install ibus Ibus-hangul
+                do_ibus_install
                 ;;
             2\ *)
-                locale-gen ko_KR.UTF-8
-                apt-get install nabi
+                do_nabi_install
                 ;;
             3\ *)
-                locale-gen ko_KR.UTF-8
-                apt-get install uim uim-beoyru
+                do_uim_install
                 ;;
             *) whiptail --msgbox "Programmer error: unrecognized option" 20 60 1 ;;
         esac || whiptail --msgbox "There was an error running option $FUN" 20 60 1
-        do_korean_im_settings
     fi
 }
 
-do_useful_apps() {
-    useful_apps='gimp vim git' # 유용한 앱들은 여기에 추가
-    $(whiptail --yesno "해당 과정은 $useful_apps을 컴퓨터에 설치합니다. 진행하시겠습니까?" 10 60 1\
+main_useful_apps() {
+    $(whiptail --yesno "해당 과정은 $USEFUL_APPS을 컴퓨터에 설치합니다. 진행하시겠습니까?" 10 60 1\
     3>&1 1>&2 2>&3)
     if [ $? -eq 0 ]; then
-        apt-get update
-        apt-get upgrade
-        apt-get install $useful_apps
+        do_useful_apps_install
     fi
+}
+
+#
+# Do 함수
+#
+do_update() {
+    apt-get update
+    apt-get -y upgrade
+}
+
+do_local_settings() {
+    ln -sf /usr/share/zoneinfo/Asia/Seoul /etc/localtime
+}
+
+do_locale_settings() {
+    locale-gen ko_KR.UTF-8
+    cat "locale" > /etc/default/locale
+}
+
+do_ibus_install() {
+    apt-get -y install ibus Ibus-hangul
+}
+do_nabi_install() {
+    apt-get -y install nabi
+}
+do_uim_install() {
+    apt-get -y install uim uim-beoyru
+}
+
+do_useful_apps_install() {
+    apt-get update
+    apt-get -y upgrade
+    apt-get -y install $USEFUL_APPS
 }
 
 #
@@ -191,13 +219,13 @@ while true; do
     3>&1 1>&2 2>&3)
     RET=$?
     if [ $RET -eq 1 ]; then
-        do_finish
+        finish
     elif [ $RET -eq 0 ]; then
     case "$FUN" in
-        1\ *) do_update ;;
-        2\ *) do_korea_local_settings ;;
-        3\ *) do_korean_im_settings ;;
-        4\ *) do_useful_apps ;;
+        1\ *) main_update ;;
+        2\ *) main_korea_local_settings ;;
+        3\ *) main_korean_im_settings ;;
+        4\ *) main_useful_apps ;;
         *) whiptail --msgbox "Programmer error: unrecognized option" 10 60 1 ;;
     esac || whiptail --msgbox "There was an error running option $FUN" 10 60 1
     else

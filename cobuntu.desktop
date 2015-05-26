@@ -3,4 +3,4 @@ Type=Application
 Terminal=false
 Name=Cobuntu-Config
 Exec=gnome-terminal -e /home/go/Dropbox/Project/ubuntu/cobuntu-config/cobuntu-config
-#Exec=sudo gnome-terminal -e /usr/bin/cobuntu-config
+#Exec=gnome-terminal -e /usr/bin/cobuntu-config
