@@ -7,6 +7,7 @@ INTERACTIVE=True
 ASK_TO_REBOOT=0
 #BLACKLIST=/etc/modprobe.d/raspi-blacklist.conf
 CONFIG=/boot/config.txt
+EXEC_PATH='/usr/bin/cobuntu-config'
 
 #
 # Functions for WT
@@ -53,8 +54,8 @@ intro() {
 
 enter_passwd() {
     if [ $(id -u) -ne 0 ]; then
-        #sudo /home/go/Dropbox/Project/ubuntu/cobuntu-config/cobuntu-config
-        sudo /usr/bin/cobuntu-config
+        sudo /home/go/Dropbox/Project/ubuntu/cobuntu-config/cobuntu-config
+        #sudo $EXEC_PATH
         exit 1
     fi
 }
@@ -118,24 +119,13 @@ do_korean_im_settings() {
 }
 
 do_useful_apps() {
-    DO=$(whiptail --title "우분투 설정 도구 (cobuntu-config)" --menu "도구 모음" $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT --cancel-button Finish --ok-button Select \
-    "1 프로그램 모음" "우분투 사용에 유용한 여러가기 프로그램들을 한꺼번에 설치합니다." \
+    useful_apps='gimp vim git' # 유용한 앱들은 여기에 추가
+    $(whiptail --yesno "해당 과정은 $useful_apps을 컴퓨터에 설치합니다. 진행하시겠습니까?" 10 60 1\
     3>&1 1>&2 2>&3)
-    RET=$?
-    if [ $RET -eq 0 ]; then
-        case "$DO" in
-            1\ *)
-                $(whiptail --yesno "해당 과정은 gimp, tlp, ... 를 컴퓨터에 설치합니다. 진행하시겠습니까?" $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT\
-                3>&1 1>&2 2>&3)
-                RET=$?
-                if [$RET -eq 0]; then
-                    echo "working"
-                    apt-get update & upgrade
-                    apt-get install gimp tlp
-                fi
-                ;;
-            *) whiptail --msgbox "Programmer error: unrecognized option" 10 60 1 ;;
-        esac || whiptail --msgbox "There was an error running option $FUN" 10 60 1
+    if [ $? -eq 0 ]; then
+        apt-get update
+        apt-get upgrade
+        apt-get install $useful_apps
     fi
 }
 
