@@ -66,7 +66,7 @@ do_auto_config() {
     apt-get upgradea -y
 
     locale-gen ko_KR.UTF-8
-    echo LANG="ko_KR.UTF-8" > /etc/locale.conf
+    echo -e LANG="ko_KR.UTF-8"\n\tLC_NUMERIC="ko_KR.UTF-8"\n\tLC_TIME="ko_KR.UTF-8"\n\tLC_MONETARY="ko_KR.UTF-8"\n\tLC_PAPER="ko_KR.UTF-8"\n\tLC_NAME="ko_KR.UTF-8"\n\tLC_ADDRESS="ko_KR.UTF-8"\n\tLC_TELEPHONE="ko_KR.UTF-8"\n\tLC_MEASUREMENT="ko_KR.UTF-8"\n\tLC_IDENTIFICATION="ko_KR.UTF-8" > /etc/default/locale
 }
 
 #
