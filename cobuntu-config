@@ -29,6 +29,26 @@ calc_wt_size() {
     WT_MENU_HEIGHT=$(($WT_HEIGHT-7))
 }
 
+intro() {
+    DO=$(whiptail --title "우분투 설정 도구 (cobuntu-config)" --menu "설치 방식을 선택하여 주십시오." $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT --cancel-button Back --ok-button Select \
+    "1 자동설정" "필요한 설정 및 프로그램을 자동으로 설치합니다. (권장)" \
+    "2 선택설정" "사용자들이 필요한 설정 및 프로그램을 직접 선택합니다. (선택)" \
+    3>&1 1>&2 2>&3)
+    RET=$?
+    if [ $RET -eq 0 ]; then
+        case "$DO" in
+            1\ *)
+                do_auto_config
+                do_finish
+                ;;
+            2\ *)
+                return
+                ;;
+            *) whiptail --msgbox "Programmer error: unrecognized option" 10 60 1 ;;
+        esac || whiptail --msgbox "There was an error running option $FUN" 10 60 1
+    fi
+}
+
 do_finish() {
     whiptail --yesno --yes-button No --no-button Yes "변경사항을 반영하려면, 시스템을 재시작해야 합니다. 재부팅하시겠습니까?" 10 60 2
     if [ $? -eq 1 ]; then # yes
@@ -37,6 +57,16 @@ do_finish() {
     fi
     exit 0
 }
+
+#
+# Auto Config
+#
+do_auto_config() {
+    apt-get update
+    apt-get upgradea -y
+
+    locale-gen ko_KR.UTF-8
+    echo LANG="ko_KR.UTF-8" > /etc/locale.conf
 
 #
 # Functions for Menu
@@ -155,6 +185,7 @@ fi
 # Interactive use loop
 #
 calc_wt_size
+intro
 while true; do
     FUN=$(whiptail --title "우분투 설정 도구 (cobuntu-config)" --menu "설정 메뉴" $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT --cancel-button Finish --ok-button Select \
     "1 우분투 최신 상태로 업데이트" "우분투를 최신 버전으로 업데이트 & 업그레이드 합니다.." \
