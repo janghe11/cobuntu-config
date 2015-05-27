@@ -8,7 +8,7 @@ ASK_TO_REBOOT=0
 #BLACKLIST=/etc/modprobe.d/raspi-blacklist.conf
 CONFIG=/boot/config.txt
 EXEC_PATH='/usr/bin/cobuntu-config'
-USEFUL_APPS='gimp vim git' # 유용한 앱들은 여기에 추가
+USEFUL_APPS='gimp vim git ttf-nanum-coding ttf-nanum' # 유용한 앱들은 여기에 추가
 
 #
 # Functions for WT
@@ -116,10 +116,15 @@ main_korean_im_settings() {
     fi
 }
 
+main_nanum_install() {
+    do_nanumfont_install
+}
+
 main_useful_apps() {
     $(whiptail --yesno "해당 과정은 $USEFUL_APPS을 컴퓨터에 설치합니다. 진행하시겠습니까?" 10 60 1\
     3>&1 1>&2 2>&3)
     if [ $? -eq 0 ]; then
+        do_update
         do_useful_apps_install
     fi
 }
@@ -151,9 +156,11 @@ do_uim_install() {
     apt-get -y install uim uim-beoyru
 }
 
+do_nanumfont_install() {
+    cp /usr/src/NanumFont/* /usr/share/fonts/TTF
+}
+
 do_useful_apps_install() {
-    apt-get update
-    apt-get -y upgrade
     apt-get -y install $USEFUL_APPS
 }
 
@@ -215,7 +222,8 @@ while true; do
     "1 우분투 최신 상태로 업데이트" "우분투를 최신 버전으로 업데이트 & 업그레이드 합니다.." \
     "2 지역 세팅" "한국 지역 관련 설정을 합니다." \
     "3 한국어 입력기 설치" "한국어 입력 관련 설정을 합니다." \
-    "4 유용한 도구들" "우분투 사용을 편하게 해주는 유용한 도구들을 설치합니다." \
+    "4 나눔고딕 폰트 설치" "나눔고딕 폰트를 설치하고 기본 서체로 지정합니다." \
+    "5 유용한 도구들" "우분투 사용을 편하게 해주는 유용한 도구들을 설치합니다." \
     3>&1 1>&2 2>&3)
     RET=$?
     if [ $RET -eq 1 ]; then
@@ -225,7 +233,8 @@ while true; do
         1\ *) main_update ;;
         2\ *) main_korea_local_settings ;;
         3\ *) main_korean_im_settings ;;
-        4\ *) main_useful_apps ;;
+        4\ *) main_nanum_install ;;
+        5\ *) main_useful_apps ;;
         *) whiptail --msgbox "Programmer error: unrecognized option" 10 60 1 ;;
     esac || whiptail --msgbox "There was an error running option $FUN" 10 60 1
     else
