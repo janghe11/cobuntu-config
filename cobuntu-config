@@ -148,10 +148,8 @@ do_locale_settings() {
 }
 
 do_ibus_install() {
-    apt-get -y install ibus Ibus-hangul
-    echo export GTK_IM_MODULE=ibus >> ~/.xprofile
-    echo export XMODIFIERS=@im=ibus >> ~/.xprofile
-    echo export QT_IM_MODULE=ibus >> ~/.xprofile
+    apt-get -y install ibus ibus-hangul
+    cp assets/00-upstream-settings /etc/dconf/db/ibus.d/
 }
 do_nabi_install() {
     apt-get -y install nabi
