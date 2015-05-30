@@ -3,6 +3,7 @@
 #
 # See LICENSE file for copyright and license details
 
+
 INTERACTIVE=True
 ASK_TO_REBOOT=0
 #BLACKLIST=/etc/modprobe.d/raspi-blacklist.conf
