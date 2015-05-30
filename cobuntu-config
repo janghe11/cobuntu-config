@@ -7,7 +7,7 @@ INTERACTIVE=True
 ASK_TO_REBOOT=0
 #BLACKLIST=/etc/modprobe.d/raspi-blacklist.conf
 CONFIG=/boot/config.txt
-EXEC_PATH='/usr/bin/cobuntu-config'
+EXEC_PATH=/usr/bin/
 USEFUL_APPS='gimp vim git ttf-nanum-coding ttf-nanum' # 유용한 앱들은 여기에 추가
 
 #
@@ -55,8 +55,8 @@ intro() {
 
 enter_passwd() {
     if [ $(id -u) -ne 0 ]; then
-        sudo /home/go/Dropbox/Project/ubuntu/cobuntu-config/cobuntu-config
-        #sudo $EXEC_PATH
+        #sudo ./cobuntu-config
+        echo 이 스크립트는 루트 권한을 필요로 합니다. sudo ./cobuntu-config로 실행시켜주십시오.
         exit 1
     fi
 }
@@ -78,6 +78,7 @@ auto_config() {
     do_local_settings
     do_locale_settings
     do_ibus_install
+    do_nanumfont_install
     do_useful_apps_install
 }
 
@@ -143,11 +144,14 @@ do_local_settings() {
 
 do_locale_settings() {
     locale-gen ko_KR.UTF-8
-    cat "locale" > /etc/default/locale
+    cat "assets/locale" > /etc/default/locale
 }
 
 do_ibus_install() {
     apt-get -y install ibus Ibus-hangul
+    echo export GTK_IM_MODULE=ibus >> ~/.xprofile
+    echo export XMODIFIERS=@im=ibus >> ~/.xprofile
+    echo export QT_IM_MODULE=ibus >> ~/.xprofile
 }
 do_nabi_install() {
     apt-get -y install nabi
@@ -157,7 +161,7 @@ do_uim_install() {
 }
 
 do_nanumfont_install() {
-    cp /usr/src/NanumFont/* /usr/share/fonts/TTF
+    cp assets/NanumFont/* /usr/share/fonts/TTF/
 }
 
 do_useful_apps_install() {
