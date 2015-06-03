@@ -152,7 +152,7 @@ do_ibus_install() {
     apt-get -y install ibus ibus-hangul
     cp assets/00-upstream-settings /etc/dconf/db/ibus.d/
     cp assets/ibus /etc/dconf/db/
-    gsettings set org.gnome.desktop.input-sources sources "[('ibus', 'hangul')]"
+    gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us'), ('ibus', 'hangul')]"
 }
 do_nabi_install() {
     apt-get -y install nabi
