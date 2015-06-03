@@ -97,8 +97,8 @@ main_korea_local_settings() {
 main_korean_im_settings() {
     DO=$(whiptail --title "우분투 설정 도구 (cobuntu-config)" --menu "어떤 한국어 입력기를 설치하시겠습니까?" $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT --cancel-button Back --ok-button Select \
     "1 ibus 설치" "한국어 입력기인 Ibus 및 Ibus-hangul을 설치합니다.(권장)" \
-    "2 nabi 설치" "한국어 입력기인 nabi을 설치합니다.(선택)" \
-    "3 uim 설치" "한국어 입력기인 uim을 설치합니다.(선택)" \
+    "2 nabi 설치" "한국어 입력기인 nabi을 설치합니다.(준비중)" \
+    "3 uim 설치" "한국어 입력기인 uim을 설치합니다.(준비중)" \
     3>&1 1>&2 2>&3)
     RET=$?
     if [ $RET -eq 0 ]; then
@@ -152,7 +152,7 @@ do_ibus_install() {
     apt-get -y install ibus ibus-hangul
     cp assets/00-upstream-settings /etc/dconf/db/ibus.d/
     cp assets/ibus /etc/dconf/db/
-    gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us'), ('ibus', 'hangul')]"
+    gsettings set org.gnome.desktop.input-sources sources "[('ibus', 'hangul')]"
 }
 do_nabi_install() {
     apt-get -y install nabi
